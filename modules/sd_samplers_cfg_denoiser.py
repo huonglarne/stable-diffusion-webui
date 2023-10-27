@@ -68,7 +68,7 @@ class CFGDenoiser(torch.nn.Module):
 
         for i, conds in enumerate(conds_list):
             for cond_index, weight in conds:
-                denoised[i] += (x_out[cond_index] - denoised_uncond[i]) * (weight * cond_scale)
+                denoised[i] += (x_out[cond_index] - denoised_uncond[i]) * weight * cond_scale
 
         return denoised
 

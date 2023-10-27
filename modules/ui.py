@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import mimetypes
 import os
@@ -312,8 +313,6 @@ def create_override_settings_dropdown(tabname, row):
     )
 
     return dropdown
-
-
 def create_ui():
     import modules.img2img
     import modules.txt2img
@@ -357,6 +356,8 @@ def create_ui():
 
                     elif category == "cfg":
                         with gr.Row():
+                            # cfg_scale = gr.Textbox(label='CFG scale (dynamic cfg: low,high:type e.g. 1.0-3.5:cos)', value=3.0, interactive=True) # HERE
+
                             cfg_scale = gr.Slider(minimum=1.0, maximum=30.0, step=0.5, label='CFG Scale', value=7.0, elem_id="txt2img_cfg_scale")
 
                     elif category == "checkboxes":
@@ -1038,7 +1039,7 @@ def create_ui():
                         create_refresh_button(train_hypernetwork_name, shared.reload_hypernetworks, lambda: {"choices": sorted(shared.hypernetworks)}, "refresh_train_hypernetwork_name")
 
                     with FormRow():
-                        embedding_learn_rate = gr.Textbox(label='Embedding Learning rate', placeholder="Embedding Learning rate", value="0.005", elem_id="train_embedding_learn_rate")
+                        embedding_learn_rate = gr.Textbox(label='Embedding Learning rate HERE', placeholder="Embedding Learning rate", value="0.0025", elem_id="train_embedding_learn_rate")
                         hypernetwork_learn_rate = gr.Textbox(label='Hypernetwork Learning rate', placeholder="Hypernetwork Learning rate", value="0.00001", elem_id="train_hypernetwork_learn_rate")
 
                     with FormRow():
@@ -1046,24 +1047,24 @@ def create_ui():
                         clip_grad_value = gr.Textbox(placeholder="Gradient clip value", value="0.1", show_label=False)
 
                     with FormRow():
-                        batch_size = gr.Number(label='Batch size', value=1, precision=0, elem_id="train_batch_size")
-                        gradient_step = gr.Number(label='Gradient accumulation steps', value=1, precision=0, elem_id="train_gradient_step")
+                        batch_size = gr.Number(label='Batchsize HERE', value=6, precision=0, elem_id="train_batch_size")
+                        gradient_step = gr.Number(label='Gradient accumulation steps', value=4, precision=0, elem_id="train_gradient_step")
 
-                    dataset_directory = gr.Textbox(label='Dataset directory', placeholder="Path to directory with input images", elem_id="train_dataset_directory")
+                    dataset_directory = gr.Textbox(label='Dataset directory HERE', value="imgs/test", elem_id="train_dataset_directory")
                     log_directory = gr.Textbox(label='Log directory', placeholder="Path to directory where to write outputs", value="textual_inversion", elem_id="train_log_directory")
 
                     with FormRow():
-                        template_file = gr.Dropdown(label='Prompt template', value="style_filewords.txt", elem_id="train_template_file", choices=get_textual_inversion_template_names())
+                        template_file = gr.Dropdown(label='Prompt template HERE', value="subject.txt", elem_id="train_template_file", choices=get_textual_inversion_template_names())
                         create_refresh_button(template_file, textual_inversion.list_textual_inversion_templates, lambda: {"choices": get_textual_inversion_template_names()}, "refrsh_train_template_file")
 
                     training_width = gr.Slider(minimum=64, maximum=2048, step=8, label="Width", value=512, elem_id="train_training_width")
                     training_height = gr.Slider(minimum=64, maximum=2048, step=8, label="Height", value=512, elem_id="train_training_height")
                     varsize = gr.Checkbox(label="Do not resize images", value=False, elem_id="train_varsize")
-                    steps = gr.Number(label='Max steps', value=100000, precision=0, elem_id="train_steps")
-
+                    steps = gr.Number(label='Max steps HERE', value=3000, precision=0, elem_id="train_steps") # here
+ 
                     with FormRow():
-                        create_image_every = gr.Number(label='Save an image to log directory every N steps, 0 to disable', value=500, precision=0, elem_id="train_create_image_every")
-                        save_embedding_every = gr.Number(label='Save a copy of embedding to log directory every N steps, 0 to disable', value=500, precision=0, elem_id="train_save_embedding_every")
+                        create_image_every = gr.Number(label='Save an image to log directory every N steps, 0 to disable HERE', value=200, precision=0, elem_id="train_create_image_every")
+                        save_embedding_every = gr.Number(label='Save a copy of embedding to log directory every N steps, 0 to disable HERE', value=200, precision=0, elem_id="train_save_embedding_every")
 
                     use_weight = gr.Checkbox(label="Use PNG alpha channel as loss weight", value=False, elem_id="use_weight")
 
@@ -1125,6 +1126,25 @@ def create_ui():
             ]
         )
 
+        # seed = 0
+        # disc_path = ""
+        # neg_train = True
+        # att_map = True
+        # rec_train = False
+        # rec_loss_w = 1.0
+        # neg_lr_w = 1.0
+        # ema_w = 1.0
+        # ema_rep_step = 25
+        # ema_w_neg = 1.0
+        # ema_rep_step_neg = 25
+        # adam_beta1 = 0.9
+        # adam_beta2 = 0.999
+        # fw_pos_only = False
+        # grad_accumulation = 1
+        # unet_train = False
+        # unet_lr = 0.000005
+
+
         run_preprocess.click(
             fn=wrap_gradio_gpu_call(textual_inversion_ui.preprocess, extra_outputs=[gr.update()]),
             _js="start_training_textual_inversion",
@@ -1161,31 +1181,26 @@ def create_ui():
             ],
         )
 
+        # HERE
         train_embedding.click(
             fn=wrap_gradio_gpu_call(textual_inversion_ui.train_embedding, extra_outputs=[gr.update()]),
             _js="start_training_textual_inversion",
             inputs=[
                 dummy_component,
+                
                 train_embedding_name,
                 embedding_learn_rate,
                 batch_size,
-                gradient_step,
                 dataset_directory,
                 log_directory,
                 training_width,
                 training_height,
-                varsize,
                 steps,
-                clip_grad_mode,
-                clip_grad_value,
-                shuffle_tags,
-                tag_drop_out,
-                latent_sampling_method,
-                use_weight,
                 create_image_every,
                 save_embedding_every,
                 template_file,
                 save_image_with_stored_embedding,
+                # cfg_scale,
                 preview_from_txt2img,
                 *txt2img_preview_params,
             ],
